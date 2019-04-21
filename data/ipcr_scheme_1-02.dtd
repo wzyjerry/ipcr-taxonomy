@@ -1,0 +1,469 @@
+<!--  History
+2005-MAY-19 (TA) diverged from RIPCIS-1-00 DTD
+2005-JUN-12 (TA) validFrom, validTo removed; edition numbers converted to dates
+2005-OCT-01 (TA) adding translation element and changing lang element in IPCEntry
+		 reason: language support for 3rd, 4th etc. elements
+-->
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	RIPCIS OUTPUT
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	SCHEME
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+<!--  revisionPeriods: root for IPC_SCHEME files
+     exchange data of more (independent) revision periods can be stored in one XML file
+Structure:
+     revisionPeriods is a list of revisionPeriod elements
+-->
+<!ELEMENT revisionPeriods (revisionPeriod+)>
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  revisionPeriod: data related to one revisionPeriod
+     contains a starting ipcEdition
+
+     in one revisionPeriod, that could be a "core" revision period,
+     more ipcEdition-s can be stored (core and advanced)
+Structure:
+     revisionPeriod contains ipcEditions
+Comment:
+     in IPCR_SCHEME files the proposals are not presented
+-->
+<!ELEMENT revisionPeriod (ipcEdition+)>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  ipcEdition: one IPC edition (core or advanced)
+Structure:
+
+	tupple of en and/or fr scheme
+Comment:
+	single language file is allowed by the DTD
+Attributes:
+	edition: e.g. 20060101
+     	ipcLevel: c(ore), a(dvanced)
+     	documentRoot: presentation detail
+-->
+<!-- 20061001 TA modified: added translation element -->
+<!ELEMENT ipcEdition (en?,fr?,translation*)>
+
+<!ATTLIST ipcEdition
+	edition		CDATA	#REQUIRED
+	ipcLevel	(c|a)	#REQUIRED
+	documentRoot	CDATA	""
+>
+<!-- 20050612 TA
+	validFrom	CDATA	#REQUIRED
+	validTo		CDATA	#IMPLIED
+-->
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  en and fr: static IPC text presentation -->
+<!ELEMENT en (staticIpc)>
+<!ELEMENT fr (staticIpc)>
+<!-- 20061001 TA added: translation, for national language versions -->
+<!ELEMENT translation (staticIpc)>
+<!ATTLIST translation
+	lang	CDATA	#REQUIRED
+>
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+<!--  staticIpc: static ipc in a single language
+Structure:
+	list of ipcEntries
+	in IPCR_SCHEME: list of sections
+Comment:
+	in IPCR_SCHEME: the structure is embedded
+          (parent-child relationship of data is reflected
+           by the XML parent-child relationship)
+	in RIPCIS: the structure is not embedded,
+	  instead, ipcEntries can be handled as 'text records'
+          (exact parent-child relationship
+	   between ipcEntries is not reflected by the
+	   XML file)
+Attributes:
+
+	lang	(EN|FR) but not fixed to this list
+	edition: 20060101
+     	ipcLevel: c(ore), a(dvanced)
+     	documentRoot: presentation detail
+Comment:
+	attributes are redundant, for allowing staticIpc as root element in RIPCIS
+-->
+
+<!ELEMENT staticIpc (ipcEntry+)>
+<!ATTLIST staticIpc
+	lang		CDATA 	"EN"
+	edition		CDATA	#REQUIRED
+	ipcLevel	(a|c)	"a"
+	documentRoot	CDATA	""
+>
+
+
+
+
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	IPCENTRY
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+<!--  ENTITIES -->
+<!--  special characters macro; see bottom of file for
+     definitions of these characters
+  -->
+<!ENTITY % chars 'nbsp|llinkt|rlinkt|larrow|rarrow|llinkthree|rlinkthree|symbol|alpha|beta|omega|ge|gt|le|lt|dbond|tbond|regist|degree|tm|cr|oe|OE|emdash|endash'>
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  ipcEntry: representation of structured and non-structured elements
+	       of the IPC text
+Structure:
+	tupple of textBody and
+                  list of ipcEntry-s
+	textBody may be empty (e.g. lines for guide headings)
+	amendment: used in RIPCIS only, list of amendments during the rev. period
+	illustration: the illustrations that belong to the entry
+	ipcEntry: embedded entries, in sequence of presentation
+Comments:
+	1. a note that belongs to a sequence of ipcEntries is presented in the list
+	of the parent of the highest entry within its scope
+	2. a non-structured entry (note,guidance heading, subsection title, line)
+        may not contain embedded entries
+Attributes:
+	acceptanceLevel: used in RIPCIS, CHAR(1), values:
+		O(riginal)
+		P(ublished)
+		(p)R(oposed)
+		C(E adopted)
+		S(C approved)
+		W(G accepted)
+	entryType:	K(lassifying), I(ndexing), D(double) (IPCR_SCHEME)
+	ipcLevel:	C(ore), A(dvanced), (c)O(re only)
+	kind:
+		s(ection)
+		t(itle: subsection title)
+		c(lass)
+		(s)u(bclass)
+		g(uidance header)
+		m(ain group)
+		1-B (dot group, 1 to 11 dots)
+		d(eleted)
+		(subclass) i(ndex)
+		n(ote)
+		l(ine) guide heading line
+	symbol:	symbol or start of scope for notes and guide headings,
+                in format A99AZZZMGGZZZZ (zero padded, 4 digit for main group, 6 digits for group)
+	endSymbol: end of scope, in case of note, guide heading and deleted
+	coreOfEntry:	symbol of associated core entry in the edition to which the entry belongs
+                in format A99AZZZMGGZZZZ (zero padded, 4 digit for main group, 6 digits for group)
+	renumberedFrom: symbol from which renumbered (RIPCIS only)
+                in format A99AZZZMGGZZZZ (zero padded, 4 digit for main group, 6 digits for group)
+	isDead: when entry is deleted by an amendment (RIPCIS only)
+	language: EN,FR
+20051001 TA	or any other two-letter language code
+		(EF maybe used at language-independent cases, e.g. deletions; EF is a non-existing language code)
+	priorityOrder: secondary sort key (number)
+	source: in output files, the source file from which the actual file was generated
+	edition: comma-separated list of versions (aka editions) , 20060101
+		edition 1: 19680901 (from 19680901 to 19740630)
+		edition 2: 19740701 (from 19740701 to 19791231)
+		edition 3: 19800101 (from 19800101 to 19841231)
+		edition 4: 19850101 (from 19850101 to 19891231)
+		edition 5: 19900101 (from 19900101 to 19941231)
+		edition 6: 19950101 (from 19950101 to 19991231)
+		edition 7: 20000101 (from 20000101 to 20051231)
+		edition 8: 20060101 (from 20060101)
+
+-->
+<!-- 20051001 TA language: CDATA instead of list, to allow translations -->
+<!ELEMENT ipcEntry (textBody*,ipcEntry*)>
+<!ATTLIST ipcEntry
+	symbol		CDATA	#REQUIRED
+	endSymbol	CDATA	#IMPLIED
+	entryType       (I|K|D)	'K'
+	ipcLevel	(C|O|A)		'C'
+	lang	        CDATA   #IMPLIED
+	coreOfEntry     CDATA	#IMPLIED
+	kind		(s|t|c|u|g|m|1|2|3|4|5|6|7|8|9|A|B|d|i|n|l)	#IMPLIED
+	isRenumbered (Y|N) 'N'
+	isDead		(Y|N)	'N'
+	edition		CDATA	#IMPLIED
+	priorityOrder	CDATA	#IMPLIED
+	amendmentType	CDATA	#IMPLIED
+	amendmentState	CDATA	#IMPLIED
+	remark		CDATA	#IMPLIED
+	version		CDATA	#IMPLIED
+>
+
+<!--
+	renumberedFrom	CDATA	#IMPLIED
+	ofEdition	CDATA	#IMPLIED
+	ofSession	CDATA	#IMPLIED
+	ofProject	CDATA	#IMPLIED
+	source		CDATA	#IMPLIED
+	diffCA		CDATA	#IMPLIED
+	acceptanceLevel	CDATA	"O"
+-->
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  textBody: various body part of the text of an entry
+Structure:
+	one of note, index, deleted or title
+	note: for kind='n'
+	index: for kind='i'
+	deleted: for kind='d'
+	title: for all other cases, including guidance heading and subsection titles
+-->
+
+<!ELEMENT textBody (note|index|deleted|title)>
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  deleted: body of a deleted entry
+Structure:
+	tupple of transferredTo and coveredBy
+Comment:
+	both optional to allow deletion of elements
+	RIPCIS: 'delete' is an amendment type and 'deleted' is the result (in normal case)
+	of a 'delete' amendment
+-->
+<!ELEMENT deleted (transferredTo?,coveredBy?)>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  transferredTo
+Structure:
+	list of mrefs or srefs (multiple or single references)
+-->
+<!ELEMENT transferredTo (sref|mref)+>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  coveredBy
+Structure:
+	list of mrefs or srefs (multiple or single references)
+-->
+<!ELEMENT coveredBy     (sref|mref)+>
+
+<!--  note: body for a note
+Structure:
+	list of noteParagraphs that may embedd subnotes
+Attributes:
+ 	type: type of prefix;
+		e.g. Roman is like I, Alpha: A. (seldomly used)
+	indent: indentation depth (if not automatic)
+-->
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!ELEMENT note (noteParagraph)+>
+<!ATTLIST note
+	type  	(none|table|number|Roman|roman|Alpha|alpha)	'none'
+	indent	CDATA	#IMPLIED
+>
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  noteParagraph: text of a single paragraph and its subparagraphs
+Structure: two independent cases:
+	textual paragraph:
+		text: contains the text itself
+		subnote: sequence of subparagraphs
+		orphan: a subparagraph that falls out of the subparagraph sequence (non-prefixed)
+	table:
+		references: list of references
+		text: text associated to references
+Attributes:
+	edition: each single paragraph has an edition attribute,
+		that may be different from the attribute of the embedding ipcEntry
+-->
+
+<!ELEMENT noteParagraph ((text,subnote?,orphan?)|(references,text))>
+<!ATTLIST noteParagraph
+	edition		CDATA	#IMPLIED
+>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  orphan: out-of-sequence subparagraph
+Structure: tupple of text, optional subnote and optional orphan
+	text: text of paragraph
+	optional sequence of subnotes: when a new sequence of subparagraphs starts under the orphan
+	orphan: an optional further orphan that closes the subparagraph sequence
+Attributes:
+	indent: presentation indentation when irregular
+	edition: an orphan may have an edition mark in []-s
+-->
+<!ELEMENT orphan (text,subnote?,orphan?)>
+<!ATTLIST orphan
+	indent	CDATA	#IMPLIED
+	edition		CDATA	#IMPLIED
+>
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  subnote: sequence of noteParagraphs
+	used to embedd as subparagraphs of noteParagraphs
+Structure:
+	list of noteParagraphs
+Attributes: as note
+-->
+<!ELEMENT subnote (noteParagraph)+>
+<!ATTLIST subnote
+	type  	(none|table|number|Roman|roman|Alpha|alpha|bullet)	'none'
+	indent	CDATA	#IMPLIED
+>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  index: body of subclass, class and subsection indexes
+Structure:
+	list of indexEntries (that may include further indexEntries
+Comment:
+	indexEntries on the 0th depth are those in full capitals
+-->
+<!ELEMENT index (indexEntry)+>
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  indexEntry: one paragraph of an index
+Structure:
+	a text, associated references and contained indexEntries
+	references are optional
+Comment:
+	at leaves references should not be empty
+-->
+<!ELEMENT indexEntry (text,references?,indexEntry*)>
+
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  title: body of structured elements as described in Guide: multipart title
+Structure:
+	list of titlePart (separated by ';')
+-->
+<!ELEMENT title (titlePart)+>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  titlePart: text and associated references with texts
+Structure:
+	tupple of text and list of entryReferences
+Comment:
+	the entryReferences, if any, are put into parentheses
+	and separated by ';'-s
+-->
+<!ELEMENT titlePart (text,entryReference*)>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  entryReference: text with layout and references
+Structure:
+	PCDATA and special characters,
+	marked up with underline, super/subscript, image, references
+Comment:
+	usual format: text,references+
+ 	however simplification was required, e.g.  'takes precedence' clause is reverse order
+-->
+<!ELEMENT entryReference (#PCDATA|u|sup|sub|img|sref|mref|%chars;)*>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  references: list of references with separators,
+		 used in notes and indexes
+Structure:
+	PCDATA (separators) and references
+-->
+<!ELEMENT references (#PCDATA|sref|mref)*>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	COMMON
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+<!ELEMENT comment (#PCDATA)>
+
+<!--  text: marked-up text -->
+<!ELEMENT text (#PCDATA|u|sup|sub|img|sref|mref|%chars;)*>
+
+<!--  sref, mref: references to IPC symbols
+Attributes:
+	ref:	IPC symbol in A99AZZZMGGZZZZ format
+	endRef:	end of reference interval IPC symbol in A99AZZZMGGZZZZ format
+	refType: compatibility with prereform, / or :
+	endRefType: type of the end of reference type
+	reference level: c(ore) a(advanced), default: core
+		references are rolled up in the core publication
+	refAdvanced: non-rolled-up reference
+	endRefAdvanced: non-rolled-up reference of the end of interval
+-->
+
+<!ELEMENT sref EMPTY>
+<!ATTLIST sref
+	ref		CDATA	#REQUIRED
+	refType		CDATA	"/"
+	refLevel	(c|i|a)		'c'
+	refAdvanced	CDATA	#IMPLIED
+>
+<!ELEMENT mref EMPTY>
+<!ATTLIST mref
+	ref		CDATA		#REQUIRED
+	endRef		CDATA	#REQUIRED
+	refType		CDATA	"/"
+	endRefType	CDATA	"/"
+	refLevel	(c|i|a)		'c'
+	endRefLevel	(c|i|a)		'c'
+	refAdvanced	CDATA	#IMPLIED
+	endRefAdvanced	CDATA	#IMPLIED
+>
+
+
+<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!--  Character markup elements
+Comment:
+	embedding not allowed for simplicity
+-->
+<!ELEMENT sub (#PCDATA)>
+<!ELEMENT sup (#PCDATA)>
+<!ELEMENT u   (#PCDATA|sref|mref|nbsp)*>
+<!ELEMENT img	EMPTY>
+<!ATTLIST img
+	src		CDATA	#REQUIRED
+>
+<!--  SPECIAL CHARACTERS -->
+<!ELEMENT nbsp EMPTY>
+<!ELEMENT llinkt EMPTY>
+<!ELEMENT rlinkt EMPTY>
+<!ELEMENT tbond EMPTY>
+<!ELEMENT larrow EMPTY>
+<!ELEMENT rarrow EMPTY>
+<!ELEMENT llinkthree EMPTY>
+<!ELEMENT rlinkthree EMPTY>
+<!ELEMENT dbond EMPTY>
+<!ELEMENT regist EMPTY>
+<!ELEMENT ge EMPTY>
+<!ELEMENT le EMPTY>
+<!ELEMENT gt EMPTY>
+<!ELEMENT lt EMPTY>
+<!ELEMENT degree EMPTY>
+<!ELEMENT alpha EMPTY>
+<!ELEMENT symbol EMPTY>
+<!ATTLIST symbol
+  character	CDATA #REQUIRED
+>
+<!ELEMENT beta EMPTY>
+<!ELEMENT omega EMPTY>
+<!ELEMENT tm EMPTY>
+<!ELEMENT cr EMPTY>
+<!ELEMENT oe EMPTY>
+<!ELEMENT OE EMPTY>
+<!ELEMENT ldash EMPTY>
+<!ELEMENT emdash EMPTY>
+<!ELEMENT endash EMPTY>
+
+
+

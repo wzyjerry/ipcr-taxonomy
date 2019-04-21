@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--  History
+2005-MAY-19 (TA) diverged from RIPCIS-1-00 DTD
+2005-JUN-12 (TA) validFrom, validTo removed; edition numbers converted to dates
+2005-OCT-01 (TA) adding translation element and changing lang element in IPCEntry
+		 reason: language support for 3rd, 4th etc. elements
+-->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	SCHEME
+    Contacts: WIPO: Patrick Fi&eacute;vet (patrick.fievet@wipo.int).
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<xs:import namespace="http://www.w3.org/XML/1998/namespace"/>
+	<!--  revisionPeriods: root for IPC_SCHEME files exchange data of more (independent) revision periods can be stored in one XML file
+		   Structure:revisionPeriods is a list of revisionPeriod elements
+    -->
+	<xs:element name="revisionPeriods">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="revisionPeriod" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  revisionPeriod: data related to one revisionPeriod contains a starting ipcEdition in one revisionPeriod, that could be a "core" revision period, more ipcEdition-s can be stored (core and advanced)
+			Structure: 
+				revisionPeriod contains ipcEditions
+			Comment:
+				in IPCR_SCHEME files the proposals are not presented
+	-->
+	<xs:element name="revisionPeriod">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="ipcEdition" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  ipcEdition: one IPC edition (core or advanced)
+		   Structure:
+				tupple of en and/or fr scheme
+		   Comment:
+				single language file is allowed by the DTD
+		    Attributes:
+				edition: 20060101
+				ipcLevel: c(ore), a(dvanced)
+				documentRoot: presentation detail
+	-->
+	<xs:element name="ipcEdition">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="en" minOccurs="0"/>
+				<xs:element ref="fr" minOccurs="0"/>
+				<xs:element ref="translation" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="edition" type="xs:anySimpleType" use="required"/>
+			<xs:attribute name="ipcLevel" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="a"/>
+						<xs:enumeration value="c"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="documentRoot" type="xs:anySimpleType" default=""/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  en:: static IPC text presentation -->
+	<xs:element name="en">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="staticIpc"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  fr:: static IPC text presentation -->
+	<xs:element name="fr">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="staticIpc"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  translation:: static IPC text presentation for national language versions -->
+	<xs:element name="translation">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="staticIpc"/>
+			</xs:sequence>
+			<xs:attribute name="lang" type="xs:anySimpleType" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<!--  staticIpc: static ipc in a single language
+		Structure:
+			list of ipcEntries in IPCR_SCHEME: list of sections
+		Comment:
+			in IPCR_SCHEME: the structure is embedded (parent-child relationship of data is reflected by the XML parent-child relationship)
+			in RIPCIS: the structure is not embedded, instead, ipcEntries can be handled as 'text records' (exact parent-child relationship
+			   between ipcEntries is not reflected by the XML file)
+		Attributes:
+			lang	(EN|FR) but not fixed to this list
+			edition: 20060101
+			ipcLevel: c(ore), a(dvanced)
+			documentRoot: presentation detail
+		Comment:
+			attributes are redundant, for allowing staticIpc as root element in RIPCIS
+	-->
+	<xs:element name="staticIpc">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="ipcEntry" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="lang" type="xs:anySimpleType" default="EN"/>
+			<xs:attribute name="edition" type="xs:anySimpleType" use="required"/>
+			<xs:attribute name="ipcLevel" default="a">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="a"/>
+						<xs:enumeration value="c"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="documentRoot" type="xs:anySimpleType" default=""/>
+		</xs:complexType>
+	</xs:element>
+
+	<!--  ipcEntry: representation of structured and non-structured elements of the IPC text
+		  Structure: tupple of textBody and list of ipcEntry-s
+			textBody may be empty (e.g. lines for guide headings)
+			amendment: used in RIPCIS only, list of amendments during the rev. period
+			illustration: the illustrations that belong to the entry
+			ipcEntry: embedded entries, in sequence of presentation
+		  Comments:
+			1. a note that belongs to a sequence of ipcEntries is presented in the list of the parent of the highest entry within its scope
+			2. a non-structured entry (note,guidance heading, subsection title, line) may not contain embedded entries
+		  Attributes:
+			acceptanceLevel: used in RIPCIS, CHAR(1), values:
+				O(riginal)
+				P(ublished)
+				(p)R(oposed)
+				C(E adopted)
+				S(C approved)
+				W(G accepted)
+			entryType:	K(lassifying), I(ndexing), D(double) (IPCR_SCHEME)
+			ipcLevel:	C(ore), A(dvanced), (c)O(re only)
+			kind:
+				s(ection)
+				t(itle: subsection title)
+				c(lass)
+				(s)u(bclass)
+				g(uidance header)
+				m(ain group)
+				1-B (dot group, 1 to 11 dots)
+				d(eleted)
+				(subclass) i(ndex)
+				n(ote)
+				l(ine) guide heading line
+			symbol:	symbol or start of scope for notes and guide headings, in format A99AZZZMGGZZZZ (zero padded, 4 digit for main group, 6 digits for group)
+			endSymbol: end of scope, in case of note, guide heading and deleted
+			coreOfEntry:	symbol of associated core entry in the edition to which the entry belongs in format A99AZZZMGGZZZZ (zero padded, 4 digit for main group, 6 digits for group)
+			renumberedFrom: symbol from which renumbered (RIPCIS only) in format A99AZZZMGGZZZZ (zero padded, 4 digit for main group, 6 digits for group)
+			isDead: when entry is deleted by an amendment (RIPCIS only)
+			language: EN,FR or any other two-letter language code
+			priorityOrder: secondary sort key (number)
+			source: in output files, the source file from which the actual file was generated
+			edition: comma-separated list of versions (aka editions) , 20060101
+	-->
+	<xs:element name="ipcEntry">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="textBody" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ipcEntry" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="symbol" type="xs:anySimpleType" use="required"/>
+			<xs:attribute name="endSymbol" type="xs:anySimpleType"/>
+			<xs:attribute name="entryType" default="K">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="D"/>
+						<xs:enumeration value="I"/>
+						<xs:enumeration value="K"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ipcLevel" default="C">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="A"/>
+						<xs:enumeration value="C"/>
+						<xs:enumeration value="O"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="lang" type="xs:anySimpleType"/>
+			<xs:attribute name="coreOfEntry" type="xs:anySimpleType"/>
+			<xs:attribute name="kind">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="7"/>
+						<xs:enumeration value="8"/>
+						<xs:enumeration value="9"/>
+						<xs:enumeration value="A"/>
+						<xs:enumeration value="B"/>
+						<xs:enumeration value="c"/>
+						<xs:enumeration value="d"/>
+						<xs:enumeration value="g"/>
+						<xs:enumeration value="i"/>
+						<xs:enumeration value="l"/>
+						<xs:enumeration value="m"/>
+						<xs:enumeration value="n"/>
+						<xs:enumeration value="s"/>
+						<xs:enumeration value="t"/>
+						<xs:enumeration value="u"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="isRenumbered" default="N">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="N"/>
+						<xs:enumeration value="Y"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="isDead" default="N">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="N"/>
+						<xs:enumeration value="Y"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="edition" type="xs:anySimpleType"/>
+			<xs:attribute name="priorityOrder" type="xs:anySimpleType"/>
+			<xs:attribute name="amendmentType" type="xs:anySimpleType"/>
+			<xs:attribute name="amendmentState" type="xs:anySimpleType"/>
+			<xs:attribute name="remark" type="xs:anySimpleType"/>
+			<xs:attribute name="version" type="xs:anySimpleType"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="textBody">
+		<xs:complexType>
+			<xs:choice>
+				<xs:element ref="note"/>
+				<xs:element ref="index"/>
+				<xs:element ref="deleted"/>
+				<xs:element ref="title"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  deleted: body of a deleted entry
+		  Structure:
+			tupple of transferredTo and coveredBy
+		  Comment:
+			both optional to allow deletion of elements
+			RIPCIS: 'delete' is an amendment type and 'deleted' is the result (in normal case)
+			of a 'delete' amendment
+	-->
+	<xs:element name="deleted">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="transferredTo" minOccurs="0"/>
+				<xs:element ref="coveredBy" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  transferredTo
+		  Structure:
+			list of mrefs or srefs (multiple or single references)
+	-->
+	<xs:element name="transferredTo">
+		<xs:complexType>
+			<xs:choice maxOccurs="unbounded">
+				<xs:element ref="sref"/>
+				<xs:element ref="mref"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  coveredBy
+		  Structure:
+			list of mrefs or srefs (multiple or single references)
+	-->
+	<xs:element name="coveredBy">
+		<xs:complexType>
+			<xs:choice maxOccurs="unbounded">
+				<xs:element ref="sref"/>
+				<xs:element ref="mref"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  note: body for a note
+		  Structure:
+			list of noteParagraphs that may embedd subnotes
+		  Attributes:
+ 			type: type of prefix; e.g. Roman is like I, Alpha: A. (seldomly used)
+			indent: indentation depth (if not automatic)
+	-->
+	<xs:element name="note">
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element ref="noteParagraph"/>
+			</xs:sequence>
+			<xs:attribute name="type" default="none">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="Roman"/>
+						<xs:enumeration value="roman"/>
+						<xs:enumeration value="number"/>
+						<xs:enumeration value="none"/>
+						<xs:enumeration value="Alpha"/>
+						<xs:enumeration value="alpha"/>
+						<xs:enumeration value="table"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="indent" type="xs:anySimpleType"/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  noteParagraph: text of a single paragraph and its subparagraphs
+		  Structure: two independent cases:
+			textual paragraph:
+				text: contains the text itself
+				subnote: sequence of subparagraphs
+				orphan: a subparagraph that falls out of the subparagraph sequence (non-prefixed)
+			table:
+				references: list of references
+				text: text associated to references
+		  Attributes:
+			edition: each single paragraph has an edition attribute, that may be different from the attribute of the embedding ipcEntry
+	-->
+	<xs:element name="noteParagraph">
+		<xs:complexType>
+			<xs:choice>
+				<xs:sequence>
+					<xs:element ref="text"/>
+					<xs:element ref="subnote" minOccurs="0"/>
+					<xs:element ref="orphan" minOccurs="0"/>
+				</xs:sequence>
+				<xs:sequence>
+					<xs:element ref="references"/>
+					<xs:element ref="text"/>
+				</xs:sequence>
+			</xs:choice>
+			<xs:attribute name="edition" type="xs:anySimpleType"/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  orphan: out-of-sequence subparagraph
+		  Structure: tupple of text, optional subnote and optional orphan
+			text: text of paragraph
+			optional sequence of subnotes: when a new sequence of subparagraphs starts under the orphan
+			orphan: an optional further orphan that closes the subparagraph sequence
+		  Attributes:
+			indent: presentation indentation when irregular
+			edition: an orphan may have an edition mark in []-s
+	-->
+	<xs:element name="orphan">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="text"/>
+				<xs:element ref="subnote" minOccurs="0"/>
+				<xs:element ref="orphan" minOccurs="0"/>
+			</xs:sequence>
+			<xs:attribute name="indent" type="xs:anySimpleType"/>
+			<xs:attribute name="edition" type="xs:anySimpleType"/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  subnote: sequence of noteParagraphs used to embedd as subparagraphs of noteParagraphs
+		  Structure:
+			list of noteParagraphs
+		  Attributes: as note
+	-->
+	<xs:element name="subnote">
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element ref="noteParagraph"/>
+			</xs:sequence>
+			<xs:attribute name="type" default="none">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="Roman"/>
+						<xs:enumeration value="roman"/>
+						<xs:enumeration value="number"/>
+						<xs:enumeration value="none"/>
+						<xs:enumeration value="Alpha"/>
+						<xs:enumeration value="alpha"/>
+						<xs:enumeration value="table"/>
+						<xs:enumeration value="bullet"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="indent" type="xs:anySimpleType"/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  index: body of subclass, class and subsection indexes
+		  Structure:
+			list of indexEntries (that may include further indexEntries
+		  Comment:
+			indexEntries on the 0th depth are those in full capitals
+	-->
+	<xs:element name="index">
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element ref="indexEntry"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  indexEntry: one paragraph of an index
+		  Structure:
+			a text, associated references and contained indexEntries
+			references are optional
+		  Comment:
+			at leaves references should not be empty
+	-->
+	<xs:element name="indexEntry">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="text"/>
+				<xs:element ref="references" minOccurs="0"/>
+				<xs:element ref="indexEntry" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  title: body of structured elements as described in Guide: multipart title
+		  Structure:
+			list of titlePart (separated by ';')
+	-->
+	<xs:element name="title">
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element ref="titlePart"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  titlePart: text and associated references with texts
+		  Structure:
+			tupple of text and list of entryReferences
+		  Comment:
+			the entryReferences, if any, are put into parentheses
+			and separated by ';'-s
+	-->
+	<xs:element name="titlePart">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="text"/>
+				<xs:element ref="entryReference" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  entryReference: text with layout and references
+		  Structure:
+			PCDATA and special characters,
+			marked up with underline, super/subscript, image, references
+		  Comment:
+			usual format: text,references+
+		 	however simplification was required, e.g.  'takes precedence' clause is reverse order
+	-->
+	<xs:element name="entryReference">
+		<xs:complexType mixed="true">
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="u"/>
+				<xs:element ref="sup"/>
+				<xs:element ref="sub"/>
+				<xs:element ref="img"/>
+				<xs:element ref="sref"/>
+				<xs:element ref="mref"/>
+				<xs:element ref="nbsp"/>
+				<xs:element ref="llinkt"/>
+				<xs:element ref="rlinkt"/>
+				<xs:element ref="larrow"/>
+				<xs:element ref="rarrow"/>
+				<xs:element ref="llinkthree"/>
+				<xs:element ref="rlinkthree"/>
+				<xs:element ref="symbol"/>
+				<xs:element ref="alpha"/>
+				<xs:element ref="beta"/>
+				<xs:element ref="omega"/>
+				<xs:element ref="ge"/>
+				<xs:element ref="gt"/>
+				<xs:element ref="le"/>
+				<xs:element ref="lt"/>
+				<xs:element ref="dbond"/>
+				<xs:element ref="tbond"/>
+				<xs:element ref="regist"/>
+				<xs:element ref="degree"/>
+				<xs:element ref="tm"/>
+				<xs:element ref="cr"/>
+				<xs:element ref="oe"/>
+				<xs:element ref="OE"/>
+				<xs:element ref="emdash"/>
+				<xs:element ref="endash"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  references: list of references with separators, used in notes and indexes
+		  Structure:
+			PCDATA (separators) and references
+	-->
+	<xs:element name="references">
+		<xs:complexType mixed="true">
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="sref"/>
+				<xs:element ref="mref"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+		COMMON
+	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+	<xs:element name="comment">
+		<xs:complexType mixed="true"/>
+	</xs:element>
+	
+	<!--  text: marked-up text -->
+	<xs:element name="text">
+		<xs:complexType mixed="true">
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="u"/>
+				<xs:element ref="sup"/>
+				<xs:element ref="sub"/>
+				<xs:element ref="img"/>
+				<xs:element ref="sref"/>
+				<xs:element ref="mref"/>
+				<xs:element ref="nbsp"/>
+				<xs:element ref="llinkt"/>
+				<xs:element ref="rlinkt"/>
+				<xs:element ref="larrow"/>
+				<xs:element ref="rarrow"/>
+				<xs:element ref="llinkthree"/>
+				<xs:element ref="rlinkthree"/>
+				<xs:element ref="symbol"/>
+				<xs:element ref="alpha"/>
+				<xs:element ref="beta"/>
+				<xs:element ref="omega"/>
+				<xs:element ref="ge"/>
+				<xs:element ref="gt"/>
+				<xs:element ref="le"/>
+				<xs:element ref="lt"/>
+				<xs:element ref="dbond"/>
+				<xs:element ref="tbond"/>
+				<xs:element ref="regist"/>
+				<xs:element ref="degree"/>
+				<xs:element ref="tm"/>
+				<xs:element ref="cr"/>
+				<xs:element ref="oe"/>
+				<xs:element ref="OE"/>
+				<xs:element ref="emdash"/>
+				<xs:element ref="endash"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  sref, mref: references to IPC symbols
+		  Attributes:
+			ref:	IPC symbol in A99AZZZMGGZZZZ format
+			endRef:	end of reference interval IPC symbol in A99AZZZMGGZZZZ format
+			refType: compatibility with prereform, / or :
+			endRefType: type of the end of reference type
+			reference level: c(ore) a(advanced), default: core
+				references are rolled up in the core publication
+			refAdvanced: non-rolled-up reference
+			endRefAdvanced: non-rolled-up reference of the end of interval
+	-->
+	<xs:element name="sref">
+		<xs:complexType>
+			<xs:attribute name="ref" type="xs:anySimpleType" use="required"/>
+			<xs:attribute name="refType" type="xs:anySimpleType" default="/"/>
+			<xs:attribute name="refLevel" default="c">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="a"/>
+						<xs:enumeration value="c"/>
+						<xs:enumeration value="i"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="refAdvanced" type="xs:anySimpleType"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mref">
+		<xs:complexType>
+			<xs:attribute name="ref" type="xs:anySimpleType" use="required"/>
+			<xs:attribute name="endRef" type="xs:anySimpleType" use="required"/>
+			<xs:attribute name="refType" type="xs:anySimpleType" default="/"/>
+			<xs:attribute name="endRefType" type="xs:anySimpleType" default="/"/>
+			<xs:attribute name="refLevel" default="c">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="a"/>
+						<xs:enumeration value="c"/>
+						<xs:enumeration value="i"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="endRefLevel" default="c">
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="a"/>
+						<xs:enumeration value="c"/>
+						<xs:enumeration value="i"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="refAdvanced" type="xs:anySimpleType"/>
+			<xs:attribute name="endRefAdvanced" type="xs:anySimpleType"/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  Character markup elements
+		  Comment:
+			embedding not allowed for simplicity
+	-->
+	<xs:element name="sub">
+		<xs:complexType mixed="true"/>
+	</xs:element>
+	<xs:element name="sup">
+		<xs:complexType mixed="true"/>
+	</xs:element>
+	<xs:element name="u">
+		<xs:complexType mixed="true">
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="sref"/>
+				<xs:element ref="mref"/>
+				<xs:element ref="nbsp"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="img">
+		<xs:complexType>
+			<xs:attribute name="src" type="xs:anySimpleType" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	
+	<!--  SPECIAL CHARACTERS -->
+	<xs:element name="nbsp">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="llinkt">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="rlinkt">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="tbond">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="larrow">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="rarrow">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="llinkthree">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="rlinkthree">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="dbond">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="regist">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="ge">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="le">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="gt">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="lt">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="degree">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="alpha">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="symbol">
+		<xs:complexType>
+			<xs:attribute name="character" type="xs:anySimpleType" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="beta">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="omega">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="tm">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="cr">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="oe">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="OE">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="ldash">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="emdash">
+		<xs:complexType/>
+	</xs:element>
+	<xs:element name="endash">
+		<xs:complexType/>
+	</xs:element>
+</xs:schema>
