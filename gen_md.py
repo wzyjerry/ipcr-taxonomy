@@ -81,7 +81,7 @@ def resolve_tag(elem, l):
     elif elem.tag == 'beta':
         l.append('β')
     else:
-        print('get_text unknown tag: ', sub.tag)
+        print('get_text unknown tag: ', elem.tag)
 
 
 def get_text(elem_text):
